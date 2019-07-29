@@ -1,0 +1,265 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "kernelspec": {
+      "display_name": "Python 3",
+      "language": "python",
+      "name": "python3"
+    },
+    "language_info": {
+      "codemirror_mode": {
+        "name": "ipython",
+        "version": 3
+      },
+      "file_extension": ".py",
+      "mimetype": "text/x-python",
+      "name": "python",
+      "nbconvert_exporter": "python",
+      "pygments_lexer": "ipython3",
+      "version": "3.5.2"
+    },
+    "colab": {
+      "name": "(YourID)_report2.ipynb",
+      "version": "0.3.2",
+      "provenance": []
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "4dRtVLSKrqN0",
+        "colab_type": "text"
+      },
+      "source": [
+        "# Machine Learning: Intermediate report\n",
+        "\n",
+        "*Write your name and your student ID below.*\n",
+        "\n",
+        "+ Your name: Kosuke Murakami (Your ID: 16B14796)"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "-nCAGWbErqN2",
+        "colab_type": "text"
+      },
+      "source": [
+        "Prepare an environment for running Python codes on Jupyter notebook. The most easiest way is to use [Google Colaboratory](https://colab.research.google.com/).\n",
+        "\n",
+        "Write codes for the following three problems, and submit the notebook file (`.ipynb`) on OCW. *We do not accept a report in other formats (e.g., Word, PDF, HTML)*. Write a code at the specified cell in the notebook. One can add more cells if necessary.\n",
+        "\n",
+        "These are the links to the sample codes used in the lecture:\n",
+        "\n",
+        "+ [Binary classification](https://github.com/chokkan/deeplearningclass/blob/master/mlp_binary.ipynb)\n",
+        "+ [MNIST](https://github.com/chokkan/deeplearningclass/blob/master/mnist.ipynb)\n",
+        "\n",
+        "*Please accept that your report may be shared among students who take this course.*"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "I7kGr3sSrqN2",
+        "colab_type": "text"
+      },
+      "source": [
+        "## 1. Multi-class classification on MNIST\n",
+        "\n",
+        "Train a model on the training set of MNIST, and report the performance of the model on the test set in the following evaluation measures:\n",
+        "\n",
+        "+ Accuracy\n",
+        "+ Precision, recall, and F1 scores on each category (digit)\n",
+        "+ Macro-averaged precision, recall, and F1 scores (i.e., the averages of the above measures for all categories)\n",
+        "\n",
+        "One can use the same code shown in the lecture. Write a code here and show the output."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "sGIPHm4ydOqd",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 306
+        },
+        "outputId": "f5c86615-e9a3-482e-dc7f-0aebdfcf2b9b"
+      },
+      "source": [
+        "import numpy as np\n",
+        "from sklearn.metrics import classification_report\n",
+        "\n",
+        "def image_to_vector(X):\n",
+        "    X = np.reshape(X, (len(X), -1))     # Flatten: (N x 28 x 28) -> (N x 784)\n",
+        "    return np.c_[X, np.ones(len(X))]    # Append 1: (N x 784) -> (N x 785)\n",
+        "\n",
+        "data = np.load('mnist.npz')\n",
+        "Xtrain = image_to_vector(data['train_x'])\n",
+        "Ytrain = data['train_y']\n",
+        "Xtest = image_to_vector(data['test_x'])\n",
+        "Ytest = data['test_y']\n",
+        "labels = list(range(10))\n",
+        "\n",
+        "W = np.random.randn(10, 28*28+1)\n",
+        "\n",
+        "eta = 0.001\n",
+        "liveloss = PlotLosses()\n",
+        "for t in range(100):\n",
+        "    # Structured perceptron for updating weights.\n",
+        "    for x, y in zip(Xtrain, Ytrain):\n",
+        "        y_pre = np.argmax(np.dot(W, x))\n",
+        "        if y_pre != y:\n",
+        "            W[y] += x * eta\n",
+        "            W[y_pre] -= x * eta\n",
+        "            \n",
+        "    # Evaluate and store the accuracy on the test set.\n",
+        "    y_pred = []\n",
+        "    for x, y in zip(Xtest, Ytest):\n",
+        "        y_pred.append(np.argmax(np.dot(W, x)))\n",
+        "        \n",
+        "print(classification_report(Ytest, y_pred))"
+      ],
+      "execution_count": 40,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "              precision    recall  f1-score   support\n",
+            "\n",
+            "           0       0.94      0.96      0.95       980\n",
+            "           1       0.94      0.97      0.96      1135\n",
+            "           2       0.90      0.82      0.86      1032\n",
+            "           3       0.85      0.86      0.86      1010\n",
+            "           4       0.93      0.88      0.91       982\n",
+            "           5       0.79      0.85      0.82       892\n",
+            "           6       0.93      0.91      0.92       958\n",
+            "           7       0.91      0.89      0.90      1028\n",
+            "           8       0.84      0.82      0.83       974\n",
+            "           9       0.84      0.90      0.87      1009\n",
+            "\n",
+            "    accuracy                           0.89     10000\n",
+            "   macro avg       0.89      0.89      0.89     10000\n",
+            "weighted avg       0.89      0.89      0.89     10000\n",
+            "\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "-jdDHVd1rqN6",
+        "colab_type": "text"
+      },
+      "source": [
+        "## 2. Confusion matrix\n",
+        "\n",
+        "Show a confusion matrix of the predictions of the model on the test set. This is an example of a confusion matrix.\n",
+        "\n",
+        "![example](https://github.com/chokkan/deeplearningclass/blob/master/assignment/example-confusion-matrix.png?raw=1)\n",
+        "\n",
+        "Write a code here and show the confusion matrix."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "eBQJ1cZTrqN6",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 187
+        },
+        "outputId": "b7f1eccc-c00b-4137-81e3-bda19dbb99d2"
+      },
+      "source": [
+        "import numpy as np\n",
+        "from sklearn.metrics import confusion_matrix\n",
+        "\n",
+        "def image_to_vector(X):\n",
+        "    X = np.reshape(X, (len(X), -1))     # Flatten: (N x 28 x 28) -> (N x 784)\n",
+        "    return np.c_[X, np.ones(len(X))]    # Append 1: (N x 784) -> (N x 785)\n",
+        "\n",
+        "data = np.load('mnist.npz')\n",
+        "Xtrain = image_to_vector(data['train_x'])\n",
+        "Ytrain = data['train_y']\n",
+        "Xtest = image_to_vector(data['test_x'])\n",
+        "Ytest = data['test_y']\n",
+        "\n",
+        "W = np.random.randn(10, 28*28+1)\n",
+        "\n",
+        "eta = 0.001\n",
+        "liveloss = PlotLosses()\n",
+        "for t in range(100):\n",
+        "    # Structured perceptron for updating weights.\n",
+        "    for x, y in zip(Xtrain, Ytrain):\n",
+        "        y_pre = np.argmax(np.dot(W, x))\n",
+        "        if y_pre != y:\n",
+        "            W[y] += x * eta\n",
+        "            W[y_pre] -= x * eta\n",
+        "            \n",
+        "    # Evaluate and store the accuracy on the test set.\n",
+        "    y_pred = []\n",
+        "    for x, y in zip(Xtest, Ytest):\n",
+        "        y_pred.append(np.argmax(np.dot(W, x)))\n",
+        "        \n",
+        "cm = confusion_matrix(Ytest, y_pred)\n",
+        "print(cm)"
+      ],
+      "execution_count": 27,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "[[ 940    0    1    5    1   17   12    1    2    1]\n",
+            " [   0 1094    6    6    1    5    3    4   16    0]\n",
+            " [  15   20  858   42    9   14    9    9   52    4]\n",
+            " [   5    1   18  877    2   63    4   12   20    8]\n",
+            " [   7    3    5    6  844    4   18   10   22   63]\n",
+            " [  11    3    6   40    9  768   15    5   28    7]\n",
+            " [  17    4    8    2   10   22  888    2    4    1]\n",
+            " [   2    7   20   15    6    5    0  901    5   67]\n",
+            " [  15    7    8   33   15   46   12    8  809   21]\n",
+            " [   8    5    1   12   24   13    0   20   15  911]]\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "dI5oa2jarqN8",
+        "colab_type": "text"
+      },
+      "source": [
+        "## 3. Top-3 easy and confusing examples\n",
+        "\n",
+        "Show the top three easy and three confusing, respectively, images where the model recognized their digits with strong confidences. More specifically, let $y_n$ and $\\hat{y}_n$ the true and predicted, respectively, digits of the image $x_n$. We want to find three images with high $P(\\hat{y}_n | x_n)$ when $y_n = \\hat{y}_n$ (easy examples) $y_n \\neq \\hat{y}_n$ (confusing examples).\n",
+        "\n",
+        "Please show $y_n$, $P(y_n | x_n)$, $\\hat{y}_n$, and $P(\\hat{y}_n | x_n)$. This is an example of an output for an image (you need this kind of outputs for top-three easy and top-three confusing images).\n",
+        "\n",
+        "![example](https://github.com/chokkan/deeplearningclass/blob/master/assignment/example-confusing-sample.png?raw=1)\n",
+        "\n",
+        "Write a code here and show the output."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "n8nYgQaZrqN9",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        ""
+      ],
+      "execution_count": 0,
+      "outputs": []
+    }
+  ]
+}
